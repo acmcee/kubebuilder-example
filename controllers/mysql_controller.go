@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"log"
 
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -38,10 +39,23 @@ type MySQLReconciler struct {
 // +kubebuilder:rbac:groups=database.fordba.com,resources=mysqls/status,verbs=get;update;patch
 
 func (r *MySQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	_ = context.Background()
+	ctx := context.Background()
 	_ = r.Log.WithValues("mysql", req.NamespacedName)
 
 	// your logic here
+
+	obj := &databasev1.MySQL{}
+	if err := r.Get(ctx, req.NamespacedName, obj); err != nil {
+		log.Println(err, "Unable to fetch object")
+	} else {
+		log.Println("get mysql from Kubebuilder ", obj.Spec.InstanceName, obj.Spec.IP, obj.Spec.Port)
+	}
+
+	// 初始化 CR 的 Status 为 Running
+	obj.Status.Status = "Running"
+	if err := r.Status().Update(ctx, obj); err != nil {
+		log.Println(err, "unable to update status")
+	}
 
 	return ctrl.Result{}, nil
 }
