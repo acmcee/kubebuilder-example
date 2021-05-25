@@ -10,4 +10,4 @@ spec:
   ip: 10.0.0.1
   port: 3306
   image: nginx
-  replicas: 2
+  replicas: 3

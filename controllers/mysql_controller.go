@@ -23,6 +23,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilretry "k8s.io/client-go/util/retry"
 
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -67,7 +68,11 @@ func (r *MySQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	if dmFound {
 		// update
+		if err := r.UpdateMySQLDeployMent(ctx, req, objMySQL, objdeployment); err != nil {
+			log.Error(err, "UpdateMySQLDeployMent error")
+		}
 	} else {
+		// create
 		if err := r.CreateMySQLDeployMent(ctx, objMySQL, objdeployment); err != nil {
 			log.Error(err, "CreateMySQLDeployMent error")
 		}
@@ -82,6 +87,26 @@ func (r *MySQLReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	return ctrl.Result{}, nil
 }
 
+func (r *MySQLReconciler) UpdateMySQLDeployMent(ctx context.Context, req ctrl.Request, vMySQL *databasev1.MySQL, vDeployMent *appsv1.Deployment) error {
+
+	if err := r.retryByDefaultBackoff(func() error {
+		if getErr := r.Get(ctx, req.NamespacedName, vDeployMent); getErr != nil {
+			return getErr
+		}
+		vDeployMent.Spec.Replicas = &vMySQL.Spec.Replicas
+		vDeployMent.Spec.Template.Spec.Containers[0].Image = vMySQL.Spec.Image
+		if updateErr := r.Update(ctx, vDeployMent); updateErr != nil {
+			return updateErr
+		}
+
+		return nil
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *MySQLReconciler) CreateMySQLDeployMent(ctx context.Context, vMySQL *databasev1.MySQL, vDeployMent *appsv1.Deployment) error {
 	metadata := vMySQL.ObjectMeta.DeepCopy()
 	vDeployMent.ObjectMeta = metav1.ObjectMeta{
@@ -90,14 +115,13 @@ func (r *MySQLReconciler) CreateMySQLDeployMent(ctx context.Context, vMySQL *dat
 	}
 	// deployment labels
 
-
 	mysqlLabel := vMySQL.ObjectMeta.GetLabels()
 	vDeployMent.ObjectMeta.SetLabels(mysqlLabel)
 
 	vDeployMent.Spec = appsv1.DeploymentSpec{
 		Replicas: &vMySQL.Spec.Replicas,
 		Selector: &metav1.LabelSelector{
-			MatchLabels:      mysqlLabel,
+			MatchLabels: mysqlLabel,
 		},
 		Template: v1.PodTemplateSpec{ObjectMeta: metav1.ObjectMeta{
 			Name:                       "",
@@ -188,6 +212,15 @@ func (r *MySQLReconciler) CreateMySQLDeployMent(ctx context.Context, vMySQL *dat
 	}
 
 	if err := r.Create(ctx, vDeployMent); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *MySQLReconciler) retryByDefaultBackoff(f func() error) error {
+	backoff := utilretry.DefaultBackoff
+	if err := utilretry.RetryOnConflict(backoff, f); err != nil {
 		return err
 	}
 
