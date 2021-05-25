@@ -30,9 +30,8 @@ type MySQLSpec struct {
 
 	// Foo is an example field of MySQL. Edit MySQL_types.go to remove/update
 	InstanceName string `json:"instance_name"`
-	IP string `json:"ip"`
-	Port int `json:"port"`
-
+	IP           string `json:"ip"`
+	Port         int    `json:"port"`
 }
 
 // MySQLStatus defines the observed state of MySQL

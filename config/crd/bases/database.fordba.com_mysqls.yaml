@@ -15,6 +15,8 @@ spec:
     plural: mysqls
     singular: mysql
   scope: Namespaced
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       description: MySQL is the Schema for the mysqls API
@@ -34,13 +36,29 @@ spec:
         spec:
           description: MySQLSpec defines the desired state of MySQL
           properties:
-            foo:
+            instance_name:
               description: Foo is an example field of MySQL. Edit MySQL_types.go to
                 remove/update
               type: string
+            ip:
+              type: string
+            port:
+              type: integer
+          required:
+          - instance_name
+          - ip
+          - port
           type: object
         status:
           description: MySQLStatus defines the observed state of MySQL
+          properties:
+            status:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "make" to regenerate code after modifying
+                this file'
+              type: string
+          required:
+          - status
           type: object
       type: object
   version: v1
