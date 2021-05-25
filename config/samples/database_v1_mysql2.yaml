@@ -1,9 +1,9 @@
 apiVersion: database.fordba.com/v1
 kind: MySQL
 metadata:
-  name: mysql-sample
+  name: mysql-sample2
 spec:
   # Add fields here
-  instance_name: harvey_test
-  ip: 10.0.0.1
-  port: 3306
+  instance_name: harvey_test2
+  ip: 10.0.0.2
+  port: 3307
