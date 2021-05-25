@@ -25,6 +25,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	databasev1 "fordba.com/kubebuilder-example/api/v1"
+	"fordba.com/kubebuilder-example/controllers"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -36,6 +39,7 @@ var (
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 
+	_ = databasev1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -62,6 +66,14 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err = (&controllers.MySQLReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("MySQL"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "MySQL")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")

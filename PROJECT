@@ -1,3 +1,7 @@
 domain: fordba.com
 repo: fordba.com/kubebuilder-example
+resources:
+- group: database
+  kind: MySQL
+  version: v1
 version: "2"
