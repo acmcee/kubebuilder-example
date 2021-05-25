@@ -32,6 +32,8 @@ type MySQLSpec struct {
 	InstanceName string `json:"instance_name"`
 	IP           string `json:"ip"`
 	Port         int    `json:"port"`
+	Image        string `json:"image"`
+	Replicas     int32  `json:"replicas"`
 }
 
 // MySQLStatus defines the observed state of MySQL

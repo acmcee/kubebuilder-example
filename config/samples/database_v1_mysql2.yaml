@@ -2,8 +2,10 @@ apiVersion: database.fordba.com/v1
 kind: MySQL
 metadata:
   name: mysql-sample2
-spec:
+  labels:
+    app: mysql
   # Add fields here
   instance_name: harvey_test2
   ip: 10.0.0.2
   port: 3307
+  image: ngix

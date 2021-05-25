@@ -36,6 +36,8 @@ spec:
         spec:
           description: MySQLSpec defines the desired state of MySQL
           properties:
+            image:
+              type: string
             instance_name:
               description: Foo is an example field of MySQL. Edit MySQL_types.go to
                 remove/update
@@ -44,10 +46,15 @@ spec:
               type: string
             port:
               type: integer
+            replicas:
+              format: int32
+              type: integer
           required:
+          - image
           - instance_name
           - ip
           - port
+          - replicas
           type: object
         status:
           description: MySQLStatus defines the observed state of MySQL
